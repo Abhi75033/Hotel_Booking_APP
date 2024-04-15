@@ -1,29 +1,62 @@
-import { Hotel } from "../models/Hotel.model";
-import asyncHandler from "../utils/asyncHandler.js"
-import ApiError from "../utils/ApiError.js"
+import Hotel from "../models/Hotel.model.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { UploadOnCloudinary } from "../utils/Cloudniary.utils.js";
+
 
 const createHotel = asyncHandler(async(req,res)=>{
-    const{Hotel_Name,description,Address,city,Country,Pincode,checkIn,checkOut,No_Of_Rooms,Price}=req.body
+const {Hotel_Name,description,Address,city,Country,Pincode,checkIn,checkOut,No_Of_Rooms,Price} = req.body
+
+console.log(Hotel_Name,description,Address,city,Country,Pincode,checkIn,checkOut,No_Of_Rooms,Price);
+
+if(!(Hotel_Name && description && Address && city && Country && Pincode && checkIn && checkOut && No_Of_Rooms && Price)){
+    throw new ApiError(400,'Please provide all the required fields')
+}
+
+const existedHotel = await Hotel.findOne({Hotel_Name})
+
+if (existedHotel) {
+    throw new ApiError(400,'Hotel already existed')   
+}
+
+const imageLocalPath = req.files.map((file)=>file.path)
+
+if (!imageLocalPath) {
+    throw new ApiError(400,'Please provide a image')
     
-    if(!Hotel_Name || !description || !Address || !city || !Country || !Pincode || !checkIn || !checkOut || !No_Of_Rooms || !Price){
-        res.status(400)
-        throw new Error("All fields are required")
-    }
+}
 
-    const ExistedHotel = await Hotel.findOne({Hotel_Name})
+const images = imageLocalPath.map(async(image)=>{
+ return  await UploadOnCloudinary(image)
+ 
+})
 
-    if(ExistedHotel){
-        throw new ApiError(400, "Hotel already exists")
-    }
+const imagess = await Promise.all(images)
+console.log(imagess);
 
-    let avatarLocalpath = req.file.avatar[0].path
+if (!images) {
+    throw new ApiError(500,'Image upload failed')
+}
 
-    if(!avatarLocalpath){
-        throw new ApiError(400, "Please provide a avatar image")
-    }
+const hotel = await Hotel.create({
+    Hotel_Name,
+    description,
+    Address,
+    city,
+    Country,
+    Pincode,
+    checkIn,
+    checkOut,
+    No_Of_Rooms,
+    Price,
+    image:imagess.map((image)=>image.url),
+})
 
-    
+return res.status(200).json(new ApiResponse(200,'Hotel created successfully',{hotel})
+)
 
 })
 
 
+export {createHotel}

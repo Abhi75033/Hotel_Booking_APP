@@ -3,6 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/User.model.js";
 import { UploadOnCloudinary,DeleteOnCloudinary } from "../utils/Cloudniary.utils.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import jwt from 'jsonwebtoken'
 
 
 const genrateAccessAndRefreshToken = async(UserId)=>{
@@ -12,6 +13,8 @@ try {
     const refreshtoken = await user.genrateRefreshToken()
     user.refreshtoken = refreshtoken
     user.save({validateBeforeSave:false})
+    const data = jwt.verify(accessToken,process.env.ACCESS_TOKEN_SECRECT)
+    console.log(data);
     return {accessToken,refreshtoken}
 } catch (error) {
     throw error

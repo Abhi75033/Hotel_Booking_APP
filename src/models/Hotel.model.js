@@ -41,10 +41,6 @@ const HotelSchema = new mongoose.Schema({
         type:Number,
         required:true
     },
-   avatar: {
-        type: String,
-        required: true
-    },
     image:[
         {
             type:String,
@@ -56,4 +52,6 @@ const HotelSchema = new mongoose.Schema({
     }
 },{timestamps:true})
 
-export const Hotel = mongoose.model('Hotel',HotelSchema)
+ const Hotel = mongoose.model("Hotel",HotelSchema)
+
+ export default Hotel
