@@ -66,4 +66,4 @@ UserSchema.methods.genrateRefreshToken = async function(){
 )
 }
 
-export const User = monngoose.model('User',UserSchema)
+export  const User = monngoose.model('User',UserSchema)

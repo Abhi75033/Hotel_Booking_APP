@@ -51,6 +51,7 @@ const hotel = await Hotel.create({
     No_Of_Rooms,
     Price,
     image:imagess.map((image)=>image.url),
+    Owner:req.user._id
 })
 
 return res.status(200).json(new ApiResponse(200,'Hotel created successfully',{hotel})

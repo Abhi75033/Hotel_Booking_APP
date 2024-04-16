@@ -4,6 +4,7 @@ import { User } from "../models/User.model.js";
 import { UploadOnCloudinary,DeleteOnCloudinary } from "../utils/Cloudniary.utils.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from 'jsonwebtoken'
+import mongoose from 'mongoose'
 
 
 const genrateAccessAndRefreshToken = async(UserId)=>{
@@ -104,4 +105,26 @@ const login = asyncHandler(async(req,res)=>{
     )
 })
 
-export {ragister,login}
+const logout = asyncHandler(async(req,res)=>{
+   await User.findByIdAndUpdate(req.user._id,
+    {
+        $unset:{
+            refreshtoken:1
+        }
+    },
+    {
+        new:true
+    }
+) 
+
+const option ={
+    httpOnly:true,
+    secure:true
+}
+
+res.clearCookie("refreshtoken")
+.clearCookie("accessToken")
+.status(200).json(new ApiResponse(200,"User loged out"))
+})
+
+export {ragister,login,logout}
