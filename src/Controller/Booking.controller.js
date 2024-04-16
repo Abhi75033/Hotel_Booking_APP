@@ -16,6 +16,12 @@ if(!(name && Phone_No && booking_from && booking_up_to,no_of_rooms)){
     throw new ApiError(400,'All feilds are required')
 }
 
+const existedBooking = await Booking.findOne({Phone_No})
+
+if (existedBooking) {
+    throw new ApiError(400,'Booking already existed')
+}
+
 const hotel = await Hotel.findById(id)
 
 console.log(hotel.Owner);
@@ -25,9 +31,14 @@ if (!hotel) {
 }
 
 // Deleting the no of rooms from the hotel
-const Hotel_Update = await Hotel.findByIdAndUpdate(id,{
-    No_Of_Rooms:hotel.No_Of_Rooms-no_of_rooms
-},{new:true})
+
+
+if(hotel.No_Of_Rooms<no_of_rooms){
+    throw new ApiError(400,'No of rooms not available')
+}else{
+    hotel.No_Of_Rooms = hotel.No_Of_Rooms - no_of_rooms
+    await hotel.save()
+}
 
 
 const time = new Date()
@@ -61,5 +72,10 @@ res.status(201).json(
 )
 
 })
+
+
+
+
+
 
 export {Hotel_Booking}
