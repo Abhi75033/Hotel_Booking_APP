@@ -149,7 +149,6 @@ const cnacelBooking = asyncHandler(async(req,res)=>{
 
 const findBookingsByPhoneNo = asyncHandler(async(req,res)=>{
     const {Phone_No} = req.body
-    console.log(Phone_No)
 
     const Bookings = await Booking.findOne({Phone_No})
 
