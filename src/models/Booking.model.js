@@ -45,10 +45,16 @@ Bookin_Time:{
 type:String,
 default:Date.now().toLocaleString()
 },
+Status:{
+type:String,
+enum:["Booked","CheckedIn","CheckOut","Canceled"],
+default:"Booked"
+},
 no_of_rooms:{
     type:Number,
     required:true
 }
 },{timestamps:true})
+
 
 export const Booking = mongoose.model('Booking',BookingSchema)
