@@ -59,5 +59,44 @@ return res.status(200).json(new ApiResponse(200,'Hotel created successfully',{ho
 
 })
 
+const UpadateHotelDetails = asyncHandler(async(req,res)=>{
+    const {Hotel_Name,description,Address,city,Country,Pincode,checkIn,checkOut,No_Of_Rooms,Price} = req.body
+    const {id}=req.params
 
-export {createHotel}
+    if(!(Hotel_Name || description || Address || city || Country || Pincode || checkIn || checkOut || No_Of_Rooms || Price)){
+        throw new ApiError(400,'Please provide atleast one field required fields')
+    }
+    console.log(id);
+    if (!id) {
+        throw new ApiError(500,'Internal Server Error ')
+    }
+
+
+
+    const hotel = await Hotel.findById(id)
+
+    if (!hotel) {
+        throw new ApiError(404,'Hotel not found')
+    }
+
+    const UpdateDeatils = await Hotel.findByIdAndUpdate(id,
+    {
+        Hotel_Name,
+        description,
+        Address,
+        city,
+        Country,
+        Pincode,
+        checkIn,
+        checkOut,
+        No_Of_Rooms,
+        Price,
+    }   
+    )
+
+    return res.status(200).json(new ApiResponse(200,'Hotel Updated successfully',{UpdateDeatils})
+    )
+})
+
+
+export {createHotel,UpadateHotelDetails}

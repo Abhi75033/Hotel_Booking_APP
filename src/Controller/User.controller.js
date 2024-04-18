@@ -39,32 +39,37 @@ if (existedUser) {
     throw new ApiError(400,'User already existed')   
 }
 
-const avatarLoclpath = req.files.avatar[0].path
+let avatar;
+let CoverImage;
 
-if (!avatarLoclpath) {
-    throw new ApiError(400,'Please provide a avatar image')
+if (req.files && req.files.avatar && req.files.CoverImage) {
+    const avatarLoclpath = req.files.avatar[0].path
+    
+    if (!avatarLoclpath) {
+        throw new ApiError(400,'Please provide a avatar image')
+    }
+    
+    const CoverImageLoclpath = req.files.CoverImage[0].path
+    
+    if (!CoverImageLoclpath) {
+        throw new ApiError(400,'Please provide a CoverImage image')
+    
+    }
+    
+     avatar = await UploadOnCloudinary(avatarLoclpath)
+     CoverImage = await UploadOnCloudinary(CoverImageLoclpath)
+    
+    if (!avatar || !CoverImage) {
+        throw new ApiError(500,'Image upload failed')
+    }
+    
 }
-
-const CoverImageLoclpath = req.files.CoverImage[0].path
-
-if (!CoverImageLoclpath) {
-    throw new ApiError(400,'Please provide a CoverImage image')
-
-}
-
-const avatar = await UploadOnCloudinary(avatarLoclpath)
-const CoverImage = await UploadOnCloudinary(CoverImageLoclpath)
-
-if (!avatar || !CoverImage) {
-    throw new ApiError(500,'Image upload failed')
-}
-
 const user = await User.create({
     name,
     email,
     password,
-    avatar:avatar.secure_url,
-    CoverImage:CoverImage.secure_url
+    avatar:avatar?.secure_url || null,
+    CoverImage:CoverImage?.secure_url || null
 })
 
 return res.status(200).json(new ApiResponse(200,'User created successfully',{user})
