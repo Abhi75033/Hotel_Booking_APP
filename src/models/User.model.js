@@ -11,7 +11,10 @@ const UserSchema = new monngoose.Schema({
         type:String,
         required:true
     },
-    
+    Username:{
+        type:String,
+        required:true
+    },
     avatar:{
         type:String,
     },

@@ -23,57 +23,36 @@ try {
 }
 
 const ragister = asyncHandler(async(req,res)=>{
-const {name,email,password} = req.body
-// if ([name,email,password].some((fields)=>fields?.trim() === '')) {
-//     throw new ApiError(400,'Please provide all the required fields')
-// }
+const {name,email,Username,password}=req.body
 
-if (!name || !email || !password) {
-    throw new ApiError(400,'Please provide all the required fields')
-    
+if (!name || !email || !Username || !password) {
+    return new ApiError(401,"All Feilds are mandatetory")
+}
+console.log(name,email,Username,password);
+const Existedemail= await User.findOne({email})
+const ExistedUsername = await User.findOne({Username})
+
+if (Existedemail) {
+    throw new ApiError(401,"E-mail is already ragisterd with us")
 }
 
-const existedUser = await User.findOne({email})
-
-if (existedUser) {
-    throw new ApiError(400,'User already existed')   
+if (ExistedUsername) {
+    throw new ApiError(401,"Username is taken by someone")
 }
 
-let avatar;
-let CoverImage;
-
-if (req.files && req.files.avatar && req.files.CoverImage) {
-    const avatarLoclpath = req.files.avatar[0].path
-    
-    if (!avatarLoclpath) {
-        throw new ApiError(400,'Please provide a avatar image')
-    }
-    
-    const CoverImageLoclpath = req.files.CoverImage[0].path
-    
-    if (!CoverImageLoclpath) {
-        throw new ApiError(400,'Please provide a CoverImage image')
-    
-    }
-    
-     avatar = await UploadOnCloudinary(avatarLoclpath)
-     CoverImage = await UploadOnCloudinary(CoverImageLoclpath)
-    
-    if (!avatar || !CoverImage) {
-        throw new ApiError(500,'Image upload failed')
-    }
-    
-}
 const user = await User.create({
     name,
     email,
-    password,
-    avatar:avatar?.secure_url || null,
-    CoverImage:CoverImage?.secure_url || null
+    Username,
+    password
 })
 
-return res.status(200).json(new ApiResponse(200,'User created successfully',{user})
-)
+if (!user) {
+    throw new ApiError(500,"Internal Error: User is not ragisterd")
+}
+
+return res.status(201).json(new ApiResponse(201,"User Ragisterd Successfully",{user}))
+
 })
 
 const login = asyncHandler(async(req,res)=>{
