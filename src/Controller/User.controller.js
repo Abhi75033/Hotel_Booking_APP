@@ -56,22 +56,22 @@ return res.status(201).json(new ApiResponse(201,"User Ragisterd Successfully",{u
 })
 
 const login = asyncHandler(async(req,res)=>{
-    const{email,password}=req.body
+    const{Username,password}=req.body
 
-    if (!email && !password) {
+    if (!Username && !password) {
         throw new ApiError(400,"Please provide email and password both")
     }
 
-    const user = await User.findOne({email})
+    const user = await User.findOne({Username})
 
     if(!user){
-        throw new ApiError(404,"user not found")
+        return res.status(404).send({message:"Inavlid Username"})
     }
 
     const isPassword = await user.isPasswodCorrect(password)
     console.log(isPassword);
     if (!isPassword) {
-       throw new ApiError(401,"Invalid password") 
+        return res.status(401).send({message:"Inavlid Password"})
     }
 
     const {refreshtoken,accessToken}= await genrateAccessAndRefreshToken(user._id)
