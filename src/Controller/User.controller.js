@@ -33,11 +33,11 @@ const Existedemail= await User.findOne({email})
 const ExistedUsername = await User.findOne({Username})
 
 if (Existedemail) {
-    throw new ApiError(401,"E-mail is already ragisterd with us")
+    return res.status(401).send({message:"Email is already ragisterd with us"})
 }
 
 if (ExistedUsername) {
-    throw new ApiError(401,"Username is taken by someone")
+   return res.status(401).send({message:"Username is taken by someone"})
 }
 
 const user = await User.create({
