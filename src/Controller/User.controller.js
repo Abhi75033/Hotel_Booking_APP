@@ -4,7 +4,8 @@ import { User } from "../models/User.model.js";
 import { UploadOnCloudinary,DeleteOnCloudinary } from "../utils/Cloudniary.utils.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from 'jsonwebtoken'
-import mongoose from 'mongoose'
+
+
 
 
 const genrateAccessAndRefreshToken = async(UserId)=>{
@@ -40,11 +41,19 @@ if (ExistedUsername) {
    return res.status(401).send({message:"Username is taken by someone"})
 }
 
+let avatarLoacalpath;
+if(req.files && Array.isArray(req.files.avatarImage) && req.files.avatarImage.length > 0){
+    avatarLoacalpath = req.files.avatarImage[0].path
+}
+
+const avatar = await UploadOnCloudinary(avatarLoacalpath)
+
 const user = await User.create({
     name,
     email,
     Username,
-    password
+    password,
+    avatar: avatar?.url || " "
 })
 
 if (!user) {
@@ -58,36 +67,120 @@ return res.status(201).json(new ApiResponse(201,"User Ragisterd Successfully",{u
 const login = asyncHandler(async(req,res)=>{
     const{Username,password}=req.body
 
-    if (!Username && !password) {
-        throw new ApiError(400,"Please provide email and password both")
-    }
+    if (!Username || !password) {
+         throw new ApiError(400,"Please provide email and password both")
+   }
 
     const user = await User.findOne({Username})
 
     if(!user){
-        return res.status(404).send({message:"Inavlid Username"})
+         return res.status(404).send({message:"Inavlid Username"})
     }
 
     const isPassword = await user.isPasswodCorrect(password)
     console.log(isPassword);
     if (!isPassword) {
         return res.status(401).send({message:"Inavlid Password"})
-    }
-
-    const {refreshtoken,accessToken}= await genrateAccessAndRefreshToken(user._id)
+   }
+ 
+    await User.findOneAndUpdate({Username},{
+        isLoggedIn:true
+    })
+     const {refreshtoken,accessToken}= await genrateAccessAndRefreshToken(user._id)
 
     const option ={
         httpOnly:true,
-        secure:true
-    }
+        secure: true, // Use secure cookies in production
+        sameSite: 'None', // Prevent CSRF attacks
+   }
 
-    res.status(200)
-    .cookie("refreshtoken",refreshtoken,option)
-    .cookie("accessToken",accessToken,option)
-    .json(
-        new ApiResponse(200,{refreshtoken,accessToken,user},"User logedin")
-    )
+    res.cookie('refreshtoken', refreshtoken, option).cookie('accessToken', accessToken, option).status(200).json(
+       new ApiResponse(200, { refreshtoken, accessToken, user }, "User logged in")
+     );
 })
+
+// const login = asyncHandler(async (req, res) => {
+//     const { Username, password } = req.body;
+
+//     if (!Username || !password) {
+//         throw new ApiError(400, "Please provide both username and password");
+//     }
+
+//     const user = await User.findOne({ Username });
+
+//     if (!user) {
+//         return res.status(404).send({ message: "Invalid Username" });
+//     }
+
+//     const isPassword = await user.isPasswodCorrect(password)
+//         console.log(isPassword);
+//         if (!isPassword) {
+//             return res.status(401).send({message:"Inavlid Password"})
+//         }
+//     await User.findOneAndUpdate({ Username }, { isLoggedIn: true });
+
+//     const { refreshtoken, accessToken } = await genrateAccessAndRefreshToken(user._id);
+
+//     const options = {
+//         httpOnly: true,
+//         secure: false,
+//         SameSite:'none' 
+//     };
+
+//     res.setcookie('accessToken',accessToken,options)
+//     .cookie('refreshToken',refreshtoken,options)
+//     .json(
+//         new ApiResponse(200,{user},'User Logedin Successfully')
+//     ) 
+
+  
+   
+// })
+
+// const login = asyncHandler(async (req, res) => {
+//     const { Username, password } = req.body;
+
+//     if (!Username || !password) {
+//         throw new ApiError(400, "Please provide both username and password");
+//     }
+
+//     const user = await User.findOne({ Username });
+
+//     if (!user) {
+//         return res.status(404).send({ message: "Invalid Username" });
+//     }
+
+//     // Corrected the spelling of 'isPasswodCorrect' to 'isPasswordCorrect'
+//     const isPassword = await user.isPasswodCorrect(password);
+//     console.log(isPassword);
+//     if (!isPassword) {
+//         return res.status(401).send({message:"Invalid Password"});
+//     }
+//     await User.findOneAndUpdate({ Username }, { isLoggedIn: true });
+
+//     const { refreshtoken, accessToken } = await genrateAccessAndRefreshToken(user._id);
+
+//     const options = {
+//         httpOnly: true,
+//         secure: true,
+//         SameSite:'None', // 'None' should be capitalized
+//         path: '/', // Added path
+//     };
+
+//     // Added 'secure' option based on the request protocol
+//     // if (req.secure || req.headers['x-forwarded-proto'] === 'https') {
+//     //     options.secure = true;
+//     // }
+
+//   return res.cookie('abhi','abhishek').send({message:'User Logedin'})
+
+//     // res.cookie('accessToken', accessToken, options)
+//     // .cookie('refreshToken', refreshtoken, options)
+//     // .json(
+//     //     new ApiResponse(200, {user}, 'User Logged in Successfully') // Corrected 'Logedin' to 'Logged in'
+//     // );
+// });
+
 
 const logout = asyncHandler(async(req,res)=>{
    await User.findByIdAndUpdate(req.user._id,
@@ -103,7 +196,7 @@ const logout = asyncHandler(async(req,res)=>{
 
 const option ={
     httpOnly:true,
-    secure:true
+    secure:false,
 }
 
 res.clearCookie("refreshtoken")
@@ -111,4 +204,21 @@ res.clearCookie("refreshtoken")
 .status(200).json(new ApiResponse(200,"User loged out"))
 })
 
-export {ragister,login,logout}
+
+const updateAvatar = asyncHandler(async(req,res)=>{
+    const avatarLoacalpath = req.files.avatar[0].path
+    if (!avatarLoacalpath) {
+        throw new ApiError(404,"image not found")
+    }
+
+    const avatars = await UploadOnCloudinary(avatarLoacalpath)
+
+
+
+
+    res.status(200).json(
+        new ApiResponse(200,{avatars},"image uploaded")
+    )
+})
+
+export {ragister,login,logout,updateAvatar}

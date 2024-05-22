@@ -2,11 +2,13 @@ import {User} from '../models/User.model.js'
 import jwt from 'jsonwebtoken';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ApiError } from '../utils/ApiError.js';
+import cookieParser from 'cookie-parser';
 
 
 const jwtVerify = asyncHandler(async (req,res,next)=>{
     try {
         let token = req.cookies.accessToken
+        console.log(req.cookies.accessToken);
         if (!token) {
             throw new ApiError(401,'Unauthorized Access')
         }

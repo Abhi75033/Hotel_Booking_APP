@@ -31,6 +31,10 @@ const UserSchema = new monngoose.Schema({
     password:{
         type:String,
         required:true
+    },
+    isLoggedIn:{
+        type:Boolean,
+        default:false
     }
 },{timestamps:true})
 

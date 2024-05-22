@@ -1,4 +1,4 @@
-import express from 'express';
+
 import app from './app.js'
 import ConnectDB from './src/db/Connection.db.js';
 import dotenv from 'dotenv'

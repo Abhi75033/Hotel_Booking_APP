@@ -59,6 +59,22 @@ return res.status(200).json(new ApiResponse(200,'Hotel created successfully',{ho
 
 })
 
+
+const getAllHotel = asyncHandler(async(req,res)=>{
+
+    const hotels = await Hotel.find()
+
+    if (!hotels) {
+        throw res.status(404).json(
+            new ApiError(404,'Hotels not found')
+        )
+    }
+
+    res.status(200).json(
+        new ApiResponse(200,{hotels},'Hotels found successfully')
+    )
+})
+
 const UpadateHotelDetails = asyncHandler(async(req,res)=>{
     const {Hotel_Name,description,Address,city,Country,Pincode,checkIn,checkOut,No_Of_Rooms,Price} = req.body
     const {id}=req.params
@@ -98,5 +114,24 @@ const UpadateHotelDetails = asyncHandler(async(req,res)=>{
     )
 })
 
+const getHotelById = asyncHandler(async(req,res)=>{
+    const {id} = req.params
 
-export {createHotel,UpadateHotelDetails}
+    if (!id) {
+      throw  new ApiError(404,"Id not found")
+      
+    }
+
+const hotels = await Hotel.findById(id)
+
+    if (!hotels) {
+        throw  new ApiError(404,'Hotel Not found')
+    }
+
+    res.status(200).json(
+        new ApiResponse(200,{hotels},'Hotel fond successfully')
+    )
+})
+
+
+export {createHotel,UpadateHotelDetails,getAllHotel,getHotelById}
