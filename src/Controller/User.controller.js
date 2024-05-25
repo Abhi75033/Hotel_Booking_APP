@@ -91,12 +91,14 @@ const login = asyncHandler(async(req,res)=>{
     const option ={
         httpOnly:true,
         secure: true, // Use secure cookies in production
-        sameSite: 'None', // Prevent CSRF attacks
    }
 
-    res.cookie('refreshtoken', refreshtoken, option).cookie('accessToken', accessToken, option).status(200).json(
-       new ApiResponse(200, { refreshtoken, accessToken, user }, "User logged in")
-     );
+//    console.log(accessToken,refreshtoken);
+
+ return res.cookie('refreshtoken', refreshtoken, option)
+    .cookie('accessToken', accessToken, option).json(
+        new ApiResponse(200,{user},'LogedIn Successfully')
+    )
 })
 
 // const login = asyncHandler(async (req, res) => {
@@ -204,6 +206,19 @@ res.clearCookie("refreshtoken")
 .status(200).json(new ApiResponse(200,"User loged out"))
 })
 
+const getUserById = asyncHandler(async(req,res)=>{
+    const id = req.user._id
+
+    const user = await User.findById(id)
+
+    if (!user) {
+        throw new ApiError(404,'User Not found')
+    }
+
+    res.status(200).json(
+        new ApiResponse(200,{user},'User found successFully')
+    )
+})
 
 const updateAvatar = asyncHandler(async(req,res)=>{
     const avatarLoacalpath = req.files.avatar[0].path
@@ -213,12 +228,17 @@ const updateAvatar = asyncHandler(async(req,res)=>{
 
     const avatars = await UploadOnCloudinary(avatarLoacalpath)
 
+    if (!avatars) {
+        throw new ApiError(500,'Interl Error while uploading image')
+    }
 
-
+    const user = await User.findByIdAndUpdate(req.user._id,{
+        avatar:avatars.secure_url
+    })
 
     res.status(200).json(
-        new ApiResponse(200,{avatars},"image uploaded")
+        new ApiResponse(200,{user},"image uploaded")
     )
 })
 
-export {ragister,login,logout,updateAvatar}
+export {ragister,login,logout,updateAvatar,getUserById}

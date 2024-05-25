@@ -5,8 +5,12 @@ name:{
     type:String,
     required:true
 },
+email:{
+type:String,
+
+},
 Phone_No:{
-    type:Number,
+    type:String,
     required:true
 },
 booking_from:{
@@ -25,10 +29,10 @@ owner:{
     type:Schema.Types.ObjectId,
     ref:'User'
 },
-Hotel_Name:{
-    type:String,
-    required:true
-},
+// Hotel_Name:{
+//     type:String,
+//     required:true
+// },
 Booked_By:{
     type:Schema.Types.ObjectId,
     ref:"User"
